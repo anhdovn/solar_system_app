@@ -1,20 +1,17 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
+import { Canvas } from '@react-three/fiber/native';
+import useControls from 'r3f-native-orbitcontrols';
+import { View } from 'react-native';
 export default function App() {
+  const [OrbitControls, events] = useControls();
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={{ flex: 1 }} {...events}>
+      <Canvas>
+        <mesh>
+          <sphereGeometry />
+          <meshStandardMaterial color="orange" />
+        </mesh>
+        <OrbitControls />
+      </Canvas>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
