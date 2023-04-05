@@ -2,6 +2,7 @@ import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'expo-three';
 import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { log } from '../App';
 const vertexShader = `
 varying vec3 vNormal;
 void main() {
@@ -23,17 +24,18 @@ void main() {
 }
 `;
 
-const Planet = () => {
+const Planet = ({ name, scale, texture, colorA, colorB, ring, ...props }) => {
   const atmosphere = useRef();
-  const map = useLoader(TextureLoader, require('../assets/textures/2k_earth_daymap.jpg'));
-
+  const planet = useRef();
+  const planetCore = useRef();
+  const map = new TextureLoader().load(texture);
   const uniform = useMemo(
     () => ({
       colorA: {
-        value: new THREE.Color(0.142, 0.545, 0.995),
+        value: colorA,
       },
       colorB: {
-        value: new THREE.Color(0.106, 0.395, 0.995),
+        value: colorB,
       },
       time: {
         value: 0,
@@ -41,30 +43,39 @@ const Planet = () => {
     }),
     []
   );
-  console.log(uniform);
   useFrame((state, delta) => {
     atmosphere.current.time += delta;
   });
   return (
-    <group>
-      <mesh>
-        <sphereGeometry />
-        <meshStandardMaterial map={map} />
-      </mesh>
-      <mesh scale={1.2}>
-        <sphereGeometry />
-        <shaderMaterial
-          fragmentShader={fragmentShader}
-          vertexShader={vertexShader}
-          ref={atmosphere}
-          side={THREE.BackSide}
-          transparent
-          blending={THREE.AdditiveBlending}
-          toneMapped={true}
-          depthWrite={false}
-          uniforms={uniform}
-        />
-      </mesh>
+    <group
+      {...props}
+      scale={scale}
+      ref={planet}
+      name={name}
+      // onClick={onPlanetCoreClick}
+      // onPointerEnter={onPointerEnter}
+      // onPointerLeave={onPointerLeave}
+    >
+      <group ref={planetCore}>
+        <mesh>
+          <sphereGeometry />
+          <meshStandardMaterial map={map} />
+        </mesh>
+        <mesh scale={1.2}>
+          <sphereGeometry />
+          <shaderMaterial
+            fragmentShader={fragmentShader}
+            vertexShader={vertexShader}
+            ref={atmosphere}
+            side={THREE.BackSide}
+            transparent
+            blending={THREE.AdditiveBlending}
+            toneMapped={true}
+            depthWrite={false}
+            uniforms={uniform}
+          />
+        </mesh>
+      </group>
     </group>
   );
 };

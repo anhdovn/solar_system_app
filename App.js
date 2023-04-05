@@ -1,48 +1,47 @@
 import { Canvas } from '@react-three/fiber/native';
+import { TextureLoader } from 'expo-three';
 import useControls from 'r3f-native-orbitcontrols';
-import { Suspense, useState } from 'react';
-import { View } from 'react-native';
-import Planet from './components/Planet';
-import * as THREE from 'three';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
+import { Suspense } from 'react';
+import { SafeAreaView } from 'react-native';
+import { logger } from 'react-native-logs';
+import Solar from './components/Solar';
+export const log = logger.createLogger({
+  transportOptions: {
+    colors: {
+      info: 'blueBright',
+      warn: 'yellowBright',
+      error: 'redBright',
+      debug: 'white',
+    },
+  },
+});
 export default function App() {
   const [OrbitControls, events] = useControls();
-  const [loaded, setLoaded] = useState(false);
   const created = ({ scene }) => {
-    scene.background = new THREE.Color('skyblue');
-    const loadingManager = new THREE.LoadingManager(
-      // Loaded
-      () => {
-        // Wait a little
-        window.setTimeout(() => {
-          setLoaded(true);
-        }, 500);
-      },
-
-      // Progress
-      (itemUrl, itemsLoaded, itemsTotal) => {
-        // Calculate the progress and update the loadingBarElement
-        // const progressRatio = itemsLoaded / itemsTotal
-      }
-    );
-
-    new RGBELoader(loadingManager).load('./assets/envs/8k_stars_milky_way.hdr', function (texture) {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      texture.minFilter = THREE.NearestFilter;
-      texture.magFilter = THREE.NearestFilter;
-      // scene.background = texture;
-      scene.environment = texture;
-    });
+    // This texture will be immediately ready but it'll load asynchronously
+    const texture = new TextureLoader().load(require('./assets/envs/8k_stars_milky_way.jpg'));
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    texture.minFilter = THREE.NearestFilter;
+    texture.magFilter = THREE.NearestFilter;
+    scene.background = texture;
   };
   return (
-    <View style={{ flex: 1 }} {...events}>
-      <Canvas onCreated={created}>
+    <SafeAreaView style={{ flex: 1 }} {...events}>
+      <Canvas
+        onCreated={created}
+        camera={{
+          fov: 75,
+          near: 0.01,
+          far: 1000,
+          position: [60, 120, 60],
+        }}
+      >
         <Suspense fallback={null}>
-          <Planet />
+          <Solar />
         </Suspense>
         <OrbitControls />
-        <ambientLight />
+        <hemisphereLight intensity={0.7} color="white" />
       </Canvas>
-    </View>
+    </SafeAreaView>
   );
 }
